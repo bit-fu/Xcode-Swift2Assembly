@@ -1,4 +1,4 @@
-# Xcode-Swift-Assembly
+# Xcode-Swift2Assembly
 
 Generates assembly from the Swift sources in an Xcode project.
 
