@@ -24,7 +24,8 @@ Usage ()
     what "$0" >&2
     cat <<___ >&2
 Usage: ${self} [-A <architecture>] [-P <platform>] [-V <version>]
-            [-B <objc-bridging-header>] [-H <header-search-paths>]
+            [-B <objc-bridging-header>] [-C <is-mac-catalyst>]
+            [-H <header-search-paths>]
             <file-or-folder> ...
 
     <architecture> : arm64 (default), x86_64.
@@ -42,7 +43,8 @@ platArg='iOS'
 versArg='14.4'
 objcArg=
 hdrsArg=
-while getopts 'A:B:H:P:V:X' opt
+isMacCatalyst=
+while getopts 'A:B:C:H:P:V:X' opt
 do
     case $opt in
     (X)
@@ -53,6 +55,9 @@ do
         ;;
     (B)
         objcArg=$OPTARG
+        ;;
+    (C)
+        isMacCatalyst=$OPTARG
         ;;
     (H)
         hdrsArg=$OPTARG
@@ -116,9 +121,15 @@ esac
 versVal=$versArg
 
 target3="${archVal}-apple-${platLwr}${versVal}${simPlat}"
+# MacCatalyst has an irregular target triple.
+[[ "${isMacCatalyst}" = 'YES' ]] && target3=x86_64-apple-ios13.1-macabi
 
 sdkName=$(xcodebuild -showsdks | sed -Ene 's/^[[:space:]]'"${platKey}"'.* ([^ ]+)$/\1/p')
 sdkPath=$(xcrun --show-sdk-path --sdk "${sdkName}")
+
+# Mac Catalyst framework search path.
+macCatalystFraneworkPath="${sdkPath}/System/iOSSupport/System/Library/Frameworks"
+
 
 optArgs=(-v)
 if [ -n "${objcArg}" ]
@@ -146,7 +157,8 @@ do
         IFS=$ifs
         mod=$(basename "${fsp}")
         # swiftc(1) writes this output to stderr?!
-        xcrun -sdk "${sdkPath}" swiftc -target "${target3}" -L /usr/lib/swift -O -S \
+        xcrun -sdk "${sdkPath}" swiftc -target "${target3}" \
+            -O -S -L /usr/lib/swift -F "${macCatalystFraneworkPath}" \
             "${optArgs[@]}" -working-directory "${fsp}" -module-name "${mod}" \
             "${srcs[@]}" &> "${fsp}/${mod}.s" || exit $?
         cd "${cwd}" || exit $?
@@ -154,7 +166,8 @@ do
         dir=$(dirname "${fsp}")
         src=$(basename "${fsp}")
         out="${src%.swift}.s"
-        xcrun -sdk "${sdkPath}" swiftc -target "${target3}" -L /usr/lib/swift -O -S \
+        xcrun -sdk "${sdkPath}" swiftc -incremental -target "${target3}" \
+            -O -S -L /usr/lib/swift -F "${macCatalystFraneworkPath}" \
             "${optArgs[@]}" -working-directory "${dir}" -o "${out}" "${src}" || exit $?
     fi
 done
