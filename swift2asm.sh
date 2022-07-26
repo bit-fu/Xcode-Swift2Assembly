@@ -121,7 +121,7 @@ esac
 versVal=$versArg
 
 target3="${archVal}-apple-${platLwr}${versVal}${simPlat}"
-# MacCatalyst has an irregular target triple.
+# Mac Catalyst has an irregular target triple.
 [[ "${isMacCatalyst}" = 'YES' ]] && target3=x86_64-apple-ios13.1-macabi
 
 sdkName=$(xcodebuild -showsdks | sed -Ene 's/^[[:space:]]'"${platKey}"'.* ([^ ]+)$/\1/p')
