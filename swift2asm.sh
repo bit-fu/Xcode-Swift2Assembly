@@ -166,7 +166,7 @@ do
         dir=$(dirname "${fsp}")
         src=$(basename "${fsp}")
         out="${src%.swift}.s"
-        xcrun -sdk "${sdkPath}" swiftc -incremental -target "${target3}" \
+        xcrun -sdk "${sdkPath}" swiftc -target "${target3}" \
             -O -S -L /usr/lib/swift -F "${macCatalystFraneworkPath}" \
             "${optArgs[@]}" -working-directory "${dir}" -o "${out}" "${src}" || exit $?
     fi
