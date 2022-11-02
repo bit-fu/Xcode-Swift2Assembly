@@ -124,7 +124,7 @@ target3="${archVal}-apple-${platLwr}${versVal}${simPlat}"
 # Mac Catalyst has an irregular target triple.
 [[ "${isMacCatalyst}" = 'YES' ]] && target3=x86_64-apple-ios13.1-macabi
 
-sdkName=$(xcodebuild -showsdks | sed -Ene 's/^[[:space:]]'"${platKey}"'.* ([^ ]+)$/\1/p')
+sdkName=$(xcodebuild -showsdks | sed -Ene 's/^[[:space:]]'"${platKey}"'.* ([^ ]+)$/\1/p' | head -n 1)
 sdkPath=$(xcrun --show-sdk-path --sdk "${sdkName}")
 
 # Mac Catalyst framework search path.
